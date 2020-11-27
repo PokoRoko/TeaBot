@@ -6,7 +6,7 @@ engine = create_engine('sqlite:///tea.db', echo=True)
 # Определяем базовый класс
 Base = declarative_base()
 
-
+# ToDo Стоит пересмотреть варианты отображения в __repr__,__str__,__dict__
 # Создаем и определяем поля для таблицы Пользователи
 class User(Base):
     """
@@ -15,6 +15,7 @@ class User(Base):
     id - Уникальный id пользователя
     telegram_id - id из Телеграма если есть
     name - Имя пользователя
+    first_name - Полное имя
     login - Логин для входа
     password  - Пароль для входа
     """
@@ -22,17 +23,20 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     telegram_id = Column(Integer)
     name = Column(String)
+    first_name = Column(String)
     login = Column(String)
     password = Column(String)
 
-    def __init__(self, telegram_id, name, login, password,):
+    def __init__(self, telegram_id, name, first_name, login, password,):
         self.telegram_id = telegram_id
         self.name = name
+        self.first_name = first_name
         self.login = login
         self.password = password
 
     def __repr__(self):
-        return "<User('%s','%s', '%s', '%s')>" % (self.telegram_id, self.name, self.login, self.password,)
+        return "<User('%s','%s', '%s', '%s', '%s')>" % \
+               (self.telegram_id, self.name, self.first_name, self.login, self.password,)
 
 
 # Создаем и определяем поля для таблицы Продукты
@@ -98,32 +102,37 @@ class Order(Base):
     """
     Класс для создания таблицы Заказов с помощью SQlalchemy
     Описание:
-    id - Уникальный id пользователя
-    telegram_id - id из Телеграма если есть
-    name - Имя пользователя
-    login - Логин для входа
-    password  - Пароль для входа
+    id - Уникальный id заказа
+    id_user - id пользователя сделавшего заказ
+    date_create - Дата создания заказа
+    status - Статус заказа
+    dict_products - Словарь-список артикулов с количеством продукта
+    price_shipper - Цена поставщика на момент заказа
+    price - Цена на момент заказа
+    address_deliver - Адресс доставки
+    type_delivery -  Тип доставки
+    date_delivery - Дата доставки
     """
     __tablename__ = 'orders'
     id = Column(Integer, primary_key=True)
     id_user = Column(Integer)
     date_create = Column(DateTime)
     status = Column(String)
-    list_products = Column(String)
+    dict_products = Column(String)
     price_shipper = Column(Integer)
     price = Column(Integer)
     address_delivery = Column(Text)
     type_delivery = Column(String)
     date_delivery = Column(DateTime)
 
-    def __init__(self, id_user, date_create, status, list_products, price_shipper,
+    def __init__(self, id_user, date_create, status, dict_products, price_shipper,
                  price, address_delivery, type_delivery, date_delivery,
                  ):
 
         self.id_user = id_user
         self.date_create = date_create
         self.status = status
-        self.list_products = list_products
+        self.dict_products = dict_products
         self.price_shipper = price_shipper
         self.price = price
         self.address_delivery = address_delivery
@@ -132,44 +141,10 @@ class Order(Base):
 
     def __repr__(self):
         return (
-            self.id_user, self.date_create, self.status, self.list_products, self.price_shipper,
+            self.id_user, self.date_create, self.status, self.dict_products, self.price_shipper,
             self.price, self.address_delivery, self.type_delivery, self.date_delivery,
         )
 
+
 Base.metadata.create_all(engine)  # Создает таблицы если их нет
-
-# # Создание сессии
-# from sqlalchemy.orm import sessionmaker
-#
-# Session = sessionmaker()
-#
-# Session.configure(bind=engine)  # Как только у вас появится engine
-#
-# session = Session()
-#
-
-#  Добавление новых объектов
-# vasiaUser = User(password="vasia", name="Vasiliy Pypkin", login="vasia2000")
-# session.add(vasiaUser)
-#
-# session.add_all([User("kolia", "Cool Kolian[S.A.]", "kolia$$$"), User("zina", "Zina Korzina", "zk18")])   #добавить сразу пачку записей
-# vasiaUser.password = "95959595"   # старый пароль был таки ненадежен, смена пароля
-#
-# session.commit()
-#
-
-# Запросы
-# Запрос, который загружает экземпляры User. В итеративном цикле возвращается список объектов User:
-# for instance in session.query(User).order_by(User.id):
-#     print(instance.name, instance.login, instance.password)
-
-"""Запрос также поддерживает в качестве аргументов дескрипторы, созданные с помощью ORM.
-Каждый раз, когда запрашиваются разнообразные объекты классов или многоколоночные объекты в качестве
-аргументов функции query(), результаты возвращаются в виде кортежей:"""
-# for name, login, password in session.query(User.name, User.login, User.password):
-#     print(name, login, password)
-#
-# # С фильтром
-# for name in session.query(User.name).filter(User.login == 'Vasiliy Pypkin'):
-#     print(name)
 
