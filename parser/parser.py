@@ -26,15 +26,33 @@ def parse_name_and_link_category():
             dop = []  # Докостыливаю добавление доп категорий
             if ss is not None:
                 for i in ss:
-                    dop =[i.get_text(), i.a['href']]
-            else:
-                dop = []
+                    dop.append([i.get_text(), i.a['href']])
             res[glob_cat_name].append([sub_cat_name, sub_cat_link, dop])
     return res
 
-# # Подготавливаю парсер ссылык на страницу товара
-# url = 'https://besttea.ru/premialnyy-chay/'
-# r = requests.get(url)
-# soup = BeautifulSoup(r.text, 'html.parser')
-# product = soup.find_all(class_="ut2-gl__name")
-# print(product)
+
+# Функция поиска ссылки для перехода по страницам категории
+def search_next_page_link(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    next_page_button = soup.find(class_= "ty-pagination__item ty-pagination__btn ty-pagination__next cm-history cm-ajax ty-pagination__right-arrow")
+    try:
+        link_next_page = next_page_button['href']
+        return link_next_page
+    except:
+        return None
+
+
+# Подготавливаю парсер ссылык на страницу товара
+def search_products_link(url):
+    res = []
+    if search_next_page_link(url) != None:
+        np = search_products_link(search_next_page_link(url))
+        res.extend(np)
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    products = soup.find_all(class_="ut2-gl__name")  # Получаем ссылки на все напродукты со страницы категории
+    for link_product in products:
+        link = link_product.a['href']
+        res.append(link)
+    return res
