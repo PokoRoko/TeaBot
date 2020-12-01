@@ -46,7 +46,7 @@ class Product(Base):
     Описание:
     id - id в таблице
     article - Уникальный артикул продукта
-    category - Категория к которой относится товар
+    parent_category - Категория к которой относится товар
     name - Наименование
     shipper - Продавец
     price_shipper - Цена от поставщика
@@ -62,7 +62,7 @@ class Product(Base):
     __tablename__ = 'products'
     id = Column(Integer)
     article = Column(String, primary_key=True)
-    category = Column(String)
+    parent_category = Column(String)
     name = Column(String)
     shipper = Column(String)
     price_shipper = Column(Integer)
@@ -74,10 +74,10 @@ class Product(Base):
     link_photo = Column(String)
     photo = Column(Boolean)
 
-    def __init__(self, article, category, name, shipper, price_shipper, price, unit,
+    def __init__(self, article, parent_category, name, shipper, price_shipper, price, unit,
                  min_buy, description, link_shipper, link_photo, photo,):
         self.article = article
-        self.category = category
+        self.parent_category = parent_category
         self.name = name
         self.shipper = shipper
         self.price_shipper = price_shipper
@@ -91,10 +91,13 @@ class Product(Base):
 
     def __repr__(self):
         return (
-            self.id, self.article, self.category, self.name, self.shipper,
+            self.id, self.article, self.parent_category, self.name, self.shipper,
             self.price_shipper, self.price, self.unit, self.min_buy,
             self.description, self.link_shipper, self.link_photo, self.photo,
             )
+
+    def __str__(self):
+        return 'fuck'
 
 
 # Создаем и определяем поля для таблицы Заказы

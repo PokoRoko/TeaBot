@@ -1,6 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 
+time_out=5
+
+
+def headers():
+    """
+    :return: Заголовок запроса для имитации пользователя
+    """
+    head = requests.utils.default_headers()
+    head.update({'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/69.0'})
+    return head
+
 
 def parse_names_and_link_categories():
     """
@@ -11,7 +22,7 @@ def parse_names_and_link_categories():
     и вложенными списками с названием подкатекории и ссылкой на нее.
     """
     url = 'https://besttea.ru/catalog/'  # Страница с основным каталогом, из которого мы будем брать надкатегории
-    r = requests.get(url)
+    r = requests.get(url, headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')  # Отправляем полученную страницу в библиотеку для парсинга
     global_categories = soup.find_all(class_="ab-lc-group")  # Получаем все ссылки и название абсолютно всех категорий
     res = {}
@@ -46,7 +57,8 @@ def search_next_page_link(url):
     :param url: Принимает ссылку на страницу с товаром
     :return: Ссылка на следующую страницу с товаром
     """
-    r = requests.get(url)
+
+    r = requests.get(url, headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')
     next_page_button = soup.find(class_= "ty-pagination__item ty-pagination__btn ty-pagination__next cm-history cm-ajax ty-pagination__right-arrow")
     try:
@@ -59,7 +71,7 @@ def search_next_page_link(url):
 # Подготавливаю парсер ссылык на страницу товара
 def search_products_link(url):
     """
-    Функция собирает все ссылки на товар со страницы и так же производит поиск на следующих страницах
+    Функция собирает все ссылки на товар со страницы и так же производит поиск на следующих страницах.
     :param url: Ссылка на страницу с товаром в категории
     :return: Список с ссылками на товар во всей категории
     """
@@ -67,7 +79,7 @@ def search_products_link(url):
     if search_next_page_link(url) != None:
         np = search_products_link(search_next_page_link(url))
         res.extend(np)
-    r = requests.get(url)
+    r = requests.get(url, headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')
     products = soup.find_all(class_="ut2-gl__name")  # Получаем ссылки на все напродукты со страницы категории
     for link_product in products:
@@ -75,25 +87,27 @@ def search_products_link(url):
         res.append(link)
     return res
 
-def parse_product(url):
+
+def scrap_product(url):
     """
     ToDo Функция собирает даные о товаре и передает в БД
     :param url: Ссылка на продукт
     :return:
     """
-    r = requests.get(url)
+    r = requests.get(url, headers=headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')
     article = (soup.find(class_="ty-control-group__item")).get_text()
     parent_category = (soup(class_="ty-breadcrumbs__a")[-1]).get_text()
     name = (soup.find(class_="ut2-pb__title")).get_text()
-    # shipper
     price_shipper = (soup.find(class_="ty-price-num")).get_text()
-    # price
-    # unit
-    # min_buy
-    # description
-    # link_shipper
+    link_shipper = url
     link_photo = (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
+    print(article)
+    print(parent_category)
+    print(name)
+    print(price_shipper)
+    print(link_shipper)
+    print(link_photo)
     # photo
 
 
@@ -113,5 +127,17 @@ def start_parsing():
             print('parse:', k[0])  # Имя родительского каталога
             link_products = search_products_link(k[1])  # Ищем ссылки на товар в категории
             for link in link_products:
-                parse_product(link)
+                scrap_product(link)
 
+
+def check_ip():
+    """
+    :return: Возвращает мой ip
+    """
+    ip = requests.get('http://checkip.dyndns.org').content
+    soup = BeautifulSoup(ip, 'html.parser')
+    print(soup.find('body').text)
+
+
+# start_parsing()
+ss = scrap_product('https://besttea.ru/puernaya-piramida-1-kg/')
