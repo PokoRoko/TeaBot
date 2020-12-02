@@ -1,10 +1,12 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 # Определяем тип и название БД (echo параметр логирования)
-engine = create_engine('sqlite:///tea.db', echo=True)
+engine = create_engine('sqlite:///tea.db', echo=False)
 # Определяем базовый класс
 Base = declarative_base()
+
 
 # ToDo Стоит пересмотреть варианты отображения в __repr__,__str__,__dict__
 # Создаем и определяем поля для таблицы Пользователи
@@ -49,7 +51,8 @@ class Product(Base):
     parent_category - Категория к которой относится товар
     name - Наименование
     shipper - Продавец
-    price_shipper - Цена от поставщика
+    price_shipper - Розничная цена от поставщика
+    ToDo opt_price
     price - Розничная цена
     unit - Единица в которой измеряется товар
     min_buy - Минимально количество для покупки данноготовара
@@ -66,6 +69,7 @@ class Product(Base):
     name = Column(String)
     shipper = Column(String)
     price_shipper = Column(Integer)
+#    opt_price = Column(Integer)
     price = Column(Integer)
     unit = Column(String)
     min_buy = Column(Integer)
@@ -74,8 +78,9 @@ class Product(Base):
     link_photo = Column(String)
     photo = Column(Boolean)
 
-    def __init__(self, article, parent_category, name, shipper, price_shipper, price, unit,
-                 min_buy, description, link_shipper, link_photo, photo,):
+    def __init__(self, article, parent_category='', name='', shipper='', price_shipper='', price='',
+                 unit='', min_buy='', description='', link_shipper='', link_photo='', photo=0,
+                 ):
         self.article = article
         self.parent_category = parent_category
         self.name = name
@@ -96,8 +101,31 @@ class Product(Base):
             self.description, self.link_shipper, self.link_photo, self.photo,
             )
 
-    def __str__(self):
-        return 'fuck'
+    def add_scrap_product_db(self):
+        """
+        Добавляет соскрапленый продукт в базу данных. Если продукт с таким артикулом уже существует,
+        то обновляет информацию по списку аргументов которые скрапятся. ToDo обозначить except
+        :return:
+        """
+        Session = sessionmaker()
+        Session.configure(bind=engine)
+        session = Session()
+        try:
+            session.add(self)
+            session.commit()
+            print(f'Добавлен новый продукт: {self.name}')
+        except:
+            session.rollback()
+            session.query(Product).filter(Product.article == self.article). \
+                update({
+                        Product.parent_category: self.parent_category,
+                        Product.name: self.name,
+                        Product.price_shipper: self.price_shipper,
+                        Product.link_shipper: self.link_shipper,
+                        Product.link_photo: self.link_photo,
+                        }, synchronize_session=False)
+            print(f'Обновленны данные: {self.article} - {self.name}')
+            session.commit()
 
 
 # Создаем и определяем поля для таблицы Заказы
@@ -150,4 +178,6 @@ class Order(Base):
 
 
 Base.metadata.create_all(engine)  # Создает таблицы если их нет
+
+
 

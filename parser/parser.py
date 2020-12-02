@@ -1,8 +1,7 @@
 import requests
+from config import time_out
 from bs4 import BeautifulSoup
-
-time_out=5
-
+from db.creating_tables import Product
 
 def headers():
     """
@@ -96,19 +95,14 @@ def scrap_product(url):
     """
     r = requests.get(url, headers=headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')
-    article = (soup.find(class_="ty-control-group__item")).get_text()
-    parent_category = (soup(class_="ty-breadcrumbs__a")[-1]).get_text()
-    name = (soup.find(class_="ut2-pb__title")).get_text()
-    price_shipper = (soup.find(class_="ty-price-num")).get_text()
-    link_shipper = url
-    link_photo = (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
-    print(article)
-    print(parent_category)
-    print(name)
-    print(price_shipper)
-    print(link_shipper)
-    print(link_photo)
-    # photo
+    res = {'article': (soup.find(class_="ty-control-group__item")).get_text(),
+           'parent_category': (soup(class_="ty-breadcrumbs__a")[-1]).get_text(),
+           'name': (soup.find(class_="ut2-pb__title")).get_text(),
+           'price_shipper': (soup.find(class_="ty-price-num")).get_text(),
+           'link_shipper': url,
+           'link_photo': (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
+           }
+    return res
 
 
 def start_parsing():
@@ -127,7 +121,8 @@ def start_parsing():
             print('parse:', k[0])  # Имя родительского каталога
             link_products = search_products_link(k[1])  # Ищем ссылки на товар в категории
             for link in link_products:
-                scrap_product(link)
+                product = scrap_product(link)
+                Product(**product)
 
 
 def check_ip():
