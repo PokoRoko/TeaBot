@@ -136,9 +136,26 @@ def start_parsing():
 
 def check_ip():
     """
+    Проверка ip
     :return: Возвращает мой ip
     """
     ip = requests.get('http://checkip.dyndns.org').content
     soup = BeautifulSoup(ip, 'html.parser')
     print(soup.find('body').text)
 
+
+def generate_bread_crumbs():
+    """
+    Парсит и генерирует словарь хлебных крошек(по плану перед каждым запуском программы)
+    :return: Словарь с именем категории в ключе и родительской директорией в значении
+    """
+    dict_category = parse_names_and_link_categories()
+    bread_crumbs = {}
+    for item in dict_category.keys():
+        bread_crumbs[item] = "base"
+        for subcategory in dict_category[item]:
+            bread_crumbs[subcategory[0]] = item
+            if subcategory[2]:
+                for subsubcategory in subcategory[2]:
+                    bread_crumbs[subcategory[0]] = subsubcategory[0]
+    return bread_crumbs
