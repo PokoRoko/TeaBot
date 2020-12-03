@@ -3,6 +3,7 @@ from config import time_out
 from bs4 import BeautifulSoup
 from db.creating_tables import Product
 
+
 def headers():
     """
     :return: Заголовок запроса для имитации пользователя

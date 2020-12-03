@@ -128,6 +128,21 @@ class Product(Base):
             print(f'Обновленны данные: {self.article} - {self.name}')
             session.commit()
 
+    def add_price_product_db(self):
+        """
+
+        """
+        Session = sessionmaker()
+        Session.configure(bind=engine)
+        session = Session()
+        session.query(Product).filter(Product.article == self.article). \
+            update({
+                    Product.opt_price: self.opt_price,
+                    Product.unit: self.unit,
+                    }, synchronize_session=False)
+        print(f'Обновленны данные: {self.article} - {self.opt_price}')
+        session.commit()
+
 
 # Создаем и определяем поля для таблицы Заказы
 class Order(Base):
