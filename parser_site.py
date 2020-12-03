@@ -89,19 +89,26 @@ def search_products_link(url):
 
 def scrap_product(url):
     """
-    ToDo Функция собирает даные о товаре и передает в БД
+    Функция собирает даные о товаре сохраняет в словарь с параметрами
     :param url: Ссылка на продукт
     :return:
     """
-    r = requests.get(url, headers=headers(), timeout=time_out)
+    try:
+        r = requests.get(url, headers=headers(), timeout=time_out)
+    except:
+        r = requests.get(url, headers=headers())
+        print("!!!Задержка по TimeOut!!!")
     soup = BeautifulSoup(r.text, 'html.parser')
-    res = {'article': (soup.find(class_="ty-control-group__item")).get_text(),
-           'parent_category': (soup(class_="ty-breadcrumbs__a")[-1]).get_text(),
-           'name': (soup.find(class_="ut2-pb__title")).get_text(),
-           'price_shipper': (soup.find(class_="ty-price-num")).get_text(),
-           'link_shipper': url,
-           'link_photo': (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
-           }
+    res = {}
+    res['article'] = (soup.find(class_="ty-control-group__item")).get_text()
+    res['parent_category'] = (soup(class_="ty-breadcrumbs__a")[-1]).get_text()
+    res['name'] = (soup.find(class_="ut2-pb__title")).get_text()
+    res['price_shipper'] = (soup.find(class_="ty-price-num")).get_text()
+    res['link_shipper'] = url
+    try:
+        res['link_photo'] = (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
+    except:
+        print(f"Ссылка на фото ({res['name']}) не найдено.")
     return res
 
 
@@ -121,8 +128,9 @@ def start_parsing():
             print('parse:', k[0])  # Имя родительского каталога
             link_products = search_products_link(k[1])  # Ищем ссылки на товар в категории
             for link in link_products:
-                product = scrap_product(link)
-                Product(**product)
+                dict_product = scrap_product(link)
+                prod = Product(**dict_product)
+                prod.add_scrap_product_db()
 
 
 def check_ip():
@@ -133,6 +141,3 @@ def check_ip():
     soup = BeautifulSoup(ip, 'html.parser')
     print(soup.find('body').text)
 
-
-# start_parsing()
-ss = scrap_product('https://besttea.ru/puernaya-piramida-1-kg/')

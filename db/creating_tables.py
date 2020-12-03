@@ -52,7 +52,7 @@ class Product(Base):
     name - Наименование
     shipper - Продавец
     price_shipper - Розничная цена от поставщика
-    ToDo opt_price
+    opt_price
     price - Розничная цена
     unit - Единица в которой измеряется товар
     min_buy - Минимально количество для покупки данноготовара
@@ -69,7 +69,7 @@ class Product(Base):
     name = Column(String)
     shipper = Column(String)
     price_shipper = Column(Integer)
-#    opt_price = Column(Integer)
+    opt_price = Column(Integer)
     price = Column(Integer)
     unit = Column(String)
     min_buy = Column(Integer)
@@ -78,7 +78,7 @@ class Product(Base):
     link_photo = Column(String)
     photo = Column(Boolean)
 
-    def __init__(self, article, parent_category='', name='', shipper='', price_shipper='', price='',
+    def __init__(self, article, parent_category='', name='', shipper='', price_shipper='', opt_price='', price='',
                  unit='', min_buy='', description='', link_shipper='', link_photo='', photo=0,
                  ):
         self.article = article
@@ -86,6 +86,7 @@ class Product(Base):
         self.name = name
         self.shipper = shipper
         self.price_shipper = price_shipper
+        self.opt_price = opt_price
         self.price = price
         self.unit = unit
         self.min_buy = min_buy
@@ -97,7 +98,7 @@ class Product(Base):
     def __repr__(self):
         return (
             self.id, self.article, self.parent_category, self.name, self.shipper,
-            self.price_shipper, self.price, self.unit, self.min_buy,
+            self.price_shipper,self.opt_price, self.price, self.unit, self.min_buy,
             self.description, self.link_shipper, self.link_photo, self.photo,
             )
 
