@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from db.creating_tables import Product
 
 
+# Подмена хэдэра для парсинга
 def headers():
     """
     :return: Заголовок запроса для имитации пользователя
@@ -13,6 +14,7 @@ def headers():
     return head
 
 
+# Парсер имен и ссылок на категории
 def parse_names_and_link_categories():
     """
     Функция собирает ссылки и название категорий и подкатегорий в основном каталоге магазина.
@@ -50,7 +52,7 @@ def parse_names_and_link_categories():
     return res
 
 
-# Функция поиска ссылки для перехода по страницам категории
+# Поиск ссылки для перехода по страницам категории
 def search_next_page_link(url):
     """
     Функция для поиска кнопки перехода на следующую страницу
@@ -60,7 +62,8 @@ def search_next_page_link(url):
 
     r = requests.get(url, headers(), timeout=time_out)
     soup = BeautifulSoup(r.text, 'html.parser')
-    next_page_button = soup.find(class_= "ty-pagination__item ty-pagination__btn ty-pagination__next cm-history cm-ajax ty-pagination__right-arrow")
+    next_page_button = soup.find(class_="ty-pagination__item ty-pagination__btn ty-pagination__next cm-history "
+                                        "cm-ajax ty-pagination__right-arrow")
     try:
         link_next_page = next_page_button['href']
         return link_next_page
@@ -68,7 +71,7 @@ def search_next_page_link(url):
         return None
 
 
-# Подготавливаю парсер ссылык на страницу товара
+# Поиск ссылык на страницу товара
 def search_products_link(url):
     """
     Функция собирает все ссылки на товар со страницы и так же производит поиск на следующих страницах.
@@ -76,7 +79,7 @@ def search_products_link(url):
     :return: Список с ссылками на товар во всей категории
     """
     res = []
-    if search_next_page_link(url) != None:
+    if search_next_page_link(url) is not None:
         np = search_products_link(search_next_page_link(url))
         res.extend(np)
     r = requests.get(url, headers(), timeout=time_out)
@@ -88,6 +91,7 @@ def search_products_link(url):
     return res
 
 
+# Сбор информации о продукте со страницы
 def scrap_product(url):
     """
     Функция собирает даные о товаре сохраняет в словарь с параметрами
@@ -100,12 +104,12 @@ def scrap_product(url):
         r = requests.get(url, headers=headers())
         print("!!!Задержка по TimeOut!!!")
     soup = BeautifulSoup(r.text, 'html.parser')
-    res = {}
-    res['article'] = (soup.find(class_="ty-control-group__item")).get_text()
-    res['parent_category'] = (soup(class_="ty-breadcrumbs__a")[-1]).get_text()
-    res['name'] = (soup.find(class_="ut2-pb__title")).get_text()
-    res['price_shipper'] = (soup.find(class_="ty-price-num")).get_text()
-    res['link_shipper'] = url
+    res = {'article': (soup.find(class_="ty-control-group__item")).get_text(),
+           'parent_category': (soup(class_="ty-breadcrumbs__a")[-1]).get_text(),
+           'name': (soup.find(class_="ut2-pb__title")).get_text(),
+           'price_shipper': (soup.find(class_="ty-price-num")).get_text(),
+           'link_shipper': url,
+           }
     try:
         res['link_photo'] = (soup.find(class_="cm-image-previewer cm-previewer ty-previewer")).img['data-src']
     except:
@@ -113,6 +117,7 @@ def scrap_product(url):
     return res
 
 
+# Старт процесса сбора данных с сохранением в БД
 def start_parsing():
     """
     Впринципе агрегирует в себе все функции парсинга страниц.
@@ -120,7 +125,7 @@ def start_parsing():
     2) Поиск ссылок на товар по категориям
     3) Парсинг страницы с товаром
     4) Запись в базу данных
-    ToDo 5) Генерирует хлебные крошки
+
     :return:
     """
     categories = parse_names_and_link_categories()
@@ -134,6 +139,7 @@ def start_parsing():
                 prod.add_scrap_product_db()
 
 
+# Проверка моего ip
 def check_ip():
     """
     Проверка ip
@@ -144,9 +150,11 @@ def check_ip():
     print(soup.find('body').text)
 
 
+# Генерирует словарь с хлебными крошками
 def generate_bread_crumbs():
     """
     Парсит и генерирует словарь хлебных крошек(по плану перед каждым запуском программы)
+    Костыль, но всегда можно переделать)))
     :return: Словарь с именем категории в ключе и родительской директорией в значении
     """
     dict_category = parse_names_and_link_categories()

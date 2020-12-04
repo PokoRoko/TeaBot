@@ -193,7 +193,5 @@ class Order(Base):
         )
 
 
-Base.metadata.create_all(engine)  # Создает таблицы если их нет
-
-
-
+if __name__ == '__main__':
+    Base.metadata.create_all(engine)  # Создает таблицы если их нет
