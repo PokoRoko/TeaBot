@@ -1,7 +1,6 @@
-from parser import start_parsing
 
-# if __name__ == '__main__':
-#    bread_crumbs = generate_bread_crumbs()
-#    start_parsing()
-#    scan_opt_price_csv()
+#from parser.parser_site import start_parsing
+import os.path
+print(os.path)
 
+#start_parsing()

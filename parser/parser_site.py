@@ -167,3 +167,6 @@ def generate_bread_crumbs():
                 for subsubcategory in subcategory[2]:
                     bread_crumbs[subcategory[0]] = subsubcategory[0]
     return bread_crumbs
+
+
+print('fuck import')
