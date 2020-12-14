@@ -1,31 +1,30 @@
-from config import bot
-import telebot
+import logging
 
-# ToDo Добавить генерацию кнопок и общую логику для старта чата с покупателем
-# Добавление кнопок для перемещения по меню
-keyboard1 = telebot.types.ReplyKeyboardMarkup()
-keyboard1.row('Привет', 'Пока')
+from config import telgram_token
+from aiogram import Bot, Dispatcher, executor, types
 
+API_TOKEN = telgram_token
 
-@bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.send_message(message.chat.id,
-                     f'Привет {message.chat.first_name}, помотрим список товара? Или уже знаешь чего хочеш?',
-                     reply_markup=keyboard1)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-
-@bot.message_handler(content_types=['text'])
-def send_text(message):
-    if message.text.lower() == 'привет':
-        bot.send_message(message.chat.id, 'Привет, пуэрчику)?')
-    elif message.text.lower() == 'пока':
-        bot.send_message(message.chat.id, 'Пока, пока!')
+# Initialize bot and dispatcher
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
 
 
-@bot.message_handler(content_types=['sticker'])
-def id_sticker(message):
-    print(message)
+@dp.message_handler(commands=['start', 'help'])
+async def send_welcome(message: types.Message):
+    """
+    This handler will be called when user sends `/start` or `/help` command
+    """
+    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
 
 
-# Запуск бота
-bot.polling()
+@dp.message_handler()
+async def echo(message: types.Message):
+    await message.answer(message)
+    print(message.from_user.id)
+
+if __name__ == '__main__':
+    executor.start_polling(dp, skip_updates=True)

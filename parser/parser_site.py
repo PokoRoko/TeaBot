@@ -170,3 +170,4 @@ def generate_bread_crumbs():
 
 
 print('fuck import')
+check_ip()
